@@ -219,11 +219,56 @@ _tac.Utils.extend = function(c, a) {
         a.prototype.constructor = a
     }
 };
-_tac.Utils.getViewportDims = function() {
-    var b = window.innerWidth || (document.documentElement.clientWidth || document.body.clientWidth);
-    var a = window.innerHeight || (document.documentElement.clientHeight || document.body.clientHeight);
+_tac.Utils.getPageOffsets = function(b) {
+    var c = (b) ? _tac.IFrameUtils.topOrSelf().document : document;
+    var a = c.pageXOffset || c.documentElement.scrollLeft || c.body.scrollLeft;
+    var d = c.pageYOffset || c.documentElement.scrollTop || c.body.scrollTop;
     return {
-        w: b,
+        x: a,
+        y: d
+    }
+};
+_tac.Utils.getViewportDims = function(b) {
+    //var b = window.innerWidth || (document.documentElement.clientWidth || document.body.clientWidth);
+    //var a = window.innerHeight || (document.documentElement.clientHeight || document.body.clientHeight);
+    var f = (b) ? _tac.IFrameUtils.topOrSelf().document : document;
+    var c = f.documentElement.clientWidth;
+    var e = f.compatMode === "CSS1Compat" && c || f.body.clientWidth || c;
+    var d = f.documentElement.clientHeight;
+    var a = f.compatMode === "CSS1Compat" && d || f.body.clientHeight || d;
+    return {
+        w: e,
         h: a
     }
+};
+_tac.Utils.calculateAbsolutePosition = function(b) {
+    var c = 0;
+    var a = 0;
+    while (b) {
+        c += b.offsetTop;
+        a += b.offsetLeft;
+        b = b.offsetParent;
+    }
+    return {
+        x: a,
+        y: c
+    }
+};
+
+_tac.IFrameUtils = function() {};
+_tac.IFrameUtils.prototype.isInIframe = function() {
+
+};
+_tac.IFrameUtils.prototype.isInFriendlyIframe = function() {
+
+};
+_tac.IFrameUtils.prototype.topOrSelf = function() {
+    var b = false;
+    try {
+        var a = top.document;
+        if (a) {
+            b = true;
+        }
+    } catch (c) {}
+    return (b) ? top : self;
 };
