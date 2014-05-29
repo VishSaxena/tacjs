@@ -254,6 +254,74 @@ _tac.Utils.calculateAbsolutePosition = function(b) {
         y: c
     }
 };
+_tac.Utils.checkFlashVersion = function() {
+    var f = "-";
+    n = navigator;
+    if (n.plugins && n.plugins.length) {
+        for (var ii = 0; ii < n.plugins.length; ii++) {
+            if (n.plugins[ii].name.indexOf('Shockwave Flash') != -1) {
+                f = n.plugins[ii].description.split('Shockwave Flash ')[1];
+                break;
+            }
+        }
+    } else if (window.ActiveXObject) {
+        for (var ii = 10; ii < 2; ii--) {
+            try {
+                var fl = eval("new ActiveXObject('ShockwaveFlash.ShockwaveFlash." + ii + "');");
+                if (fl) {
+                    f = ii + '.0';
+                    break;
+                }
+            } catch (e) {}
+        }
+    }
+    return f;
+};
+
+_tac.CookieUtils = function() {};
+_tac.CookieUtils.prototype.getCookies = function(cookieName) {
+    var d = _tac.IFrameUtils.topOrSelf().document : document;
+    var c = d.cookie;
+    var i = 0;
+    var index1 = c.indexOf(cookieName);
+    if (index1 == -1 || cookieName == "") 
+        return "";
+    var index2 = c.indexOf(';', index1);
+    if (index2 == -1)
+        index2 = c.length;
+    return unescape(c.substring(index1 + cookieName.length + 1, index2));
+};
+_tac.CookieUtils.prototype.setCookies = function(cookieName, cookieValue, cookieDuration) {
+    var c = cookieName + "=" + cookieValue;
+    var d = _tac.IFrameUtils.topOrSelf().document : document;
+    d.cookie = c;
+    if (!this.getCookies(cookieName)) {
+        return false;
+    } else {
+        return true;
+    }
+};
+_tac.CookieUtils.prototype.checkCookies = function(cookieName, cookieValue, cookieDuration) {
+    if (this.getCookies(cookieName) < 1) {
+        if (this.setCookies(cookieName, cookieValue, cookieDuration) == true) {
+            _tac.AdManager.adServerConfigs.showAuto = 1;
+            return false;
+        }
+    } else {
+        _tac.AdManager.adServerConfigs.showAuto = 0;
+    }
+};
+_tac.CookieUtils.prototype.cookieValidate = function() {
+    _tac.AdManager.adServerConfigs.expCount = this.getCookies(_tac.AdManager.adServerConfigs.cookieName);
+    
+    if ((_tac.AdManager.adServerConfigs.expCount == null) || (_tac.AdManager.adServerConfigs.expCount == "")) {
+        _tac.AdManager.adServerConfigs.expCount = 1;
+    } else {
+        _tac.AdManager.adServerConfigs.expCount++;
+    }
+    if (_tac.AdManager.adServerConfigs.useCookie == 1) 
+        this.checkCookies(_tac.AdManager.adServerConfigs.cookieName, _tac.AdManager.adServerConfigs.expCount, 1);
+};
 
 _tac.IFrameUtils = function() {};
 _tac.IFrameUtils.prototype.isInIframe = function() {
@@ -272,3 +340,10 @@ _tac.IFrameUtils.prototype.topOrSelf = function() {
     } catch (c) {}
     return (b) ? top : self;
 };
+
+_tac.AdManager = function() {};
+//showAuto -- Auto open Rich Media
+//expCount -- Cookie count value
+//cookieName -- Name of the Cookie
+//useCookie -- Use Cookie for Auto open of Rich Media
+_tac.AdManager.adServerConfigs = {};
