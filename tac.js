@@ -285,10 +285,10 @@ _tac.Utils.getConfigOverride = function(b, a) {
 TAC IFRAME UTILS STARTS
 **********************************************************/
 _tac.IFrameUtils = function() {};
-_tac.IFrameUtils.prototype.isInIframe = function() {
+_tac.IFrameUtils.isInIframe = function() {
 	return (self != top);
 };
-_tac.IFrameUtils.prototype.isInFriendlyIframe = function(b) {
+_tac.IFrameUtils.isInFriendlyIframe = function(b) {
 	var c = false;
 	try {
 		var a = this.determineDisplayWindowTarget(b).window;
@@ -298,7 +298,7 @@ _tac.IFrameUtils.prototype.isInFriendlyIframe = function(b) {
 	} catch (e) {}
 	return c;
 };
-_tac.IFrameUtils.prototype.determineDisplayWindowTarget = function (c) {
+_tac.IFrameUtils.determineDisplayWindowTarget = function (c) {
 	var h = _tac.Utils.getConfigOverride(c, "displayWindowTarget");
 	if (h != null) {
 		if (self != top) {
@@ -319,15 +319,15 @@ _tac.IFrameUtils.prototype.determineDisplayWindowTarget = function (c) {
 		f = (f == top) ? null : f.parent;
 	}
 };
-_tac.IFrameUtils.prototype.topOrSelf = function() {
+_tac.IFrameUtils.topOrSelf = function() {
     var b = false;
     try {
-        var a = top.document;
+        var a = parent.top.document;
         if (a) {
             b = true;
         }
     } catch (c) {}
-    return (b) ? top : self;
+    return (b) ? parent.top : self;
 };
 /**********************************************************
 TAC IFRAME UTILS ENDS
@@ -337,7 +337,7 @@ TAC IFRAME UTILS ENDS
 TAC COOKIE STARTS
 **********************************************************/
 _tac.CookieUtils = function() {};
-_tac.CookieUtils.prototype.getCookies = function(cookieName) {	
+_tac.CookieUtils.getCookies = function(cookieName) {	
 	var S = _tac.IFrameUtils;
 	var W = (S && S.isInIframe() && S.isInFriendlyIframe()) ? S.topOfSelf() : window;
     var d = W.document;
@@ -351,21 +351,21 @@ _tac.CookieUtils.prototype.getCookies = function(cookieName) {
         index2 = c.length;
     return unescape(c.substring(index1 + cookieName.length + 1, index2));
 };
-_tac.CookieUtils.prototype.setCookies = function(cookieName, cookieValue, cookieDuration) {
+_tac.CookieUtils.setCookies = function(cookieName, cookieValue, cookieDuration) {
     var c = cookieName + "=" + cookieValue;
 	var S = _tac.IFrameUtils;
 	var W = (S && S.isInIframe() && S.isInFriendlyIframe()) ? S.topOfSelf() : window;
-    var d = W.document;
+	var d = W.document;
     d.cookie = c;
-    if (!this.getCookies(cookieName)) {
+    if (!_tac.CookieUtils.getCookies(cookieName)) {
         return false;
     } else {
         return true;
     }
 };
-_tac.CookieUtils.prototype.checkCookies = function(cookieName, cookieValue, cookieDuration) {
-    if (this.getCookies(cookieName) < 1) {
-        if (this.setCookies(cookieName, cookieValue, cookieDuration) == true) {
+_tac.CookieUtils.checkCookies = function(cookieName, cookieValue, cookieDuration) {	
+    if (_tac.CookieUtils.getCookies(cookieName) < 1) {    	
+        if (_tac.CookieUtils.setCookies(cookieName, cookieValue, cookieDuration) == true) {
             _tac.AdManager.adServerConfigs.showAuto = 1;
             return false;
         }
@@ -373,32 +373,64 @@ _tac.CookieUtils.prototype.checkCookies = function(cookieName, cookieValue, cook
         _tac.AdManager.adServerConfigs.showAuto = 0;
     }
 };
-_tac.CookieUtils.prototype.cookieValidate = function() {
-    _tac.AdManager.adServerConfigs.expCount = this.getCookies(_tac.AdManager.adServerConfigs.cookieName);
-    
-    if ((_tac.AdManager.adServerConfigs.expCount == null) || (_tac.AdManager.adServerConfigs.expCount == "")) {
-        _tac.AdManager.adServerConfigs.expCount = 1;
+_tac.CookieUtils.cookieValidate = function(cn) {
+	var expCount = _tac.CookieUtils.getCookies(cn);
+	
+    if ((this.expCount == null) || (this.expCount == "")) {
+        this.expCount = 1;
     } else {
-        _tac.AdManager.adServerConfigs.expCount++;
+        this.expCount++;
     }
     if (_tac.AdManager.adServerConfigs.useCookie == 1) 
-        this.checkCookies(_tac.AdManager.adServerConfigs.cookieName, _tac.AdManager.adServerConfigs.expCount, 1);
+        _tac.CookieUtils.checkCookies(cn, this.expCount, 1);
 };
 /**********************************************************
 TAC COOKIE ENDS
 **********************************************************/
 
-
-
 /**********************************************************
 TAC ADMANAGER STARTS
 **********************************************************/
-_tac.AdManager = function() {};
+_tac.AdManager = function() {
+	this.cv = null;
+	this.globalEventBus = new _tac.EventDispatcher();
+};
 //showAuto -- Auto open Rich Media
 //expCount -- Cookie count value
 //cookieName -- Name of the Cookie
 //useCookie -- Use Cookie for Auto open of Rich Media
+//w -- width of the creative
+//h -- height
+//ew -- expandable width
+//eh -- expandable height
+//c: "",
+//ec: "",
+//bc: "",
+//innovtype: "expand", //framespot,skin,shosh,pushdown
+//crtype: "flash", //HTML5
+//clk: "",
+//imp: ["",""],
+//iTimeout: 12000,
+//iPos: "left-top"
 _tac.AdManager.adServerConfigs = {};
+_tac.AdManager.prototype.registerAd = function(b) {
+	console.log('registerAd');
+};
+_tac.AdManager.prototype.registerAds = function(b) {
+	this.cv = _tac.CookieUtils;
+	var d = b.useCookie;
+	var e = b.showAuto;
+	var cookieName = '_tac_' + b.w + b.h + b.ew + b.eh;
+	this.cv.cookieValidate(cookieName);
+	console.log(_tac.AdManager.adServerConfigs.showAuto);
+	//this.registerAd(b);
+	//this.cv.cookieValidate(cookieName);
+	//console.log(cookieName);
+	
+	/*for (var a in b) {
+		console.log(a + '::' + b[a]);
+	}*/
+};
 
 /**********************************************************
 TAC ADMANAGER ENDS
@@ -408,9 +440,19 @@ TAC ADMANAGER ENDS
 TAC CORE STARTS
 **********************************************************/
 _tac.Core = function() {};
-
+_tac.Core.pubServerConfigs = {};
+_tac.Core.prototype.config = function(c) {
+	try {
+		this.pubServerConfigs = c;
+		_tac.AdManager.adServerConfigs = this.pubServerConfigs;
+		var adMgr = new _tac.AdManager();
+		if (typeof _tac.AdManager.adServerConfigs != null) {
+			adMgr.registerAds(_tac.AdManager.adServerConfigs);
+		}
+	} catch(e) {console.log('Core Config: ' + e);}
+};
 /**********************************************************
 TAC CORE ENDS
 **********************************************************/
 
-TAC = _tac.Core();
+var TAC = new _tac.Core();
