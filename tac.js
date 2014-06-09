@@ -277,10 +277,70 @@ _tac.Utils.checkFlashVersion = function() {
     }
     return f;
 };
+_tac.Utils.getConfigOverride = function(b, a) {
+	return (typeof b == "object" && typeof b.overrides == "object" && b.overrides[a] !== undefined) ? b.overrides[a] : null;
+};
 
+/**********************************************************
+TAC IFRAME UTILS STARTS
+**********************************************************/
+_tac.IFrameUtils = function() {};
+_tac.IFrameUtils.prototype.isInIframe = function() {
+	return (self != top);
+};
+_tac.IFrameUtils.prototype.isInFriendlyIframe = function(b) {
+	var c = false;
+	try {
+		var a = this.determineDisplayWindowTarget(b).window;
+		if (a) {
+			c = true;
+		}
+	} catch (e) {}
+	return c;
+};
+_tac.IFrameUtils.prototype.determineDisplayWindowTarget = function (c) {
+	var h = _tac.Utils.getConfigOverride(c, "displayWindowTarget");
+	if (h != null) {
+		if (self != top) {
+			h = (h == top) ? top : h.parent;
+		}
+		return h;
+	}
+	var d = top;
+	var a = null;
+	var f = parent;
+	while (f != null) {
+		try {
+			var b = f.document;
+			if (b) {
+				a = f;
+			}
+		} catch (g) {}
+		f = (f == top) ? null : f.parent;
+	}
+};
+_tac.IFrameUtils.prototype.topOrSelf = function() {
+    var b = false;
+    try {
+        var a = top.document;
+        if (a) {
+            b = true;
+        }
+    } catch (c) {}
+    return (b) ? top : self;
+};
+/**********************************************************
+TAC IFRAME UTILS ENDS
+**********************************************************/
+
+/**********************************************************
+TAC COOKIE STARTS
+**********************************************************/
 _tac.CookieUtils = function() {};
-_tac.CookieUtils.prototype.getCookies = function(cookieName) {
-    var d = _tac.IFrameUtils.topOrSelf().document : document;
+_tac.CookieUtils.prototype.getCookies = function(cookieName) {	
+	var S = _tac.IFrameUtils;
+	var W = (S && S.isInIframe() && S.isInFriendlyIframe()) ? S.topOfSelf() : window;
+    var d = W.document;
     var c = d.cookie;
     var i = 0;
     var index1 = c.indexOf(cookieName);
@@ -293,7 +353,9 @@ _tac.CookieUtils.prototype.getCookies = function(cookieName) {
 };
 _tac.CookieUtils.prototype.setCookies = function(cookieName, cookieValue, cookieDuration) {
     var c = cookieName + "=" + cookieValue;
-    var d = _tac.IFrameUtils.topOrSelf().document : document;
+	var S = _tac.IFrameUtils;
+	var W = (S && S.isInIframe() && S.isInFriendlyIframe()) ? S.topOfSelf() : window;
+    var d = W.document;
     d.cookie = c;
     if (!this.getCookies(cookieName)) {
         return false;
@@ -322,28 +384,33 @@ _tac.CookieUtils.prototype.cookieValidate = function() {
     if (_tac.AdManager.adServerConfigs.useCookie == 1) 
         this.checkCookies(_tac.AdManager.adServerConfigs.cookieName, _tac.AdManager.adServerConfigs.expCount, 1);
 };
+/**********************************************************
+TAC COOKIE ENDS
+**********************************************************/
 
-_tac.IFrameUtils = function() {};
-_tac.IFrameUtils.prototype.isInIframe = function() {
 
-};
-_tac.IFrameUtils.prototype.isInFriendlyIframe = function() {
 
-};
-_tac.IFrameUtils.prototype.topOrSelf = function() {
-    var b = false;
-    try {
-        var a = top.document;
-        if (a) {
-            b = true;
-        }
-    } catch (c) {}
-    return (b) ? top : self;
-};
-
+/**********************************************************
+TAC ADMANAGER STARTS
+**********************************************************/
 _tac.AdManager = function() {};
 //showAuto -- Auto open Rich Media
 //expCount -- Cookie count value
 //cookieName -- Name of the Cookie
 //useCookie -- Use Cookie for Auto open of Rich Media
 _tac.AdManager.adServerConfigs = {};
+
+/**********************************************************
+TAC ADMANAGER ENDS
+**********************************************************/
+
+/**********************************************************
+TAC CORE STARTS
+**********************************************************/
+_tac.Core = function() {};
+
+/**********************************************************
+TAC CORE ENDS
+**********************************************************/
+
+TAC = _tac.Core();
