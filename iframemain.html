@@ -3,8 +3,28 @@
 <head>
 <meta charset="UTF-8">
 <title>Insert title here</title>
+<script type="text/javascript">
+	function createIframe() {
+		var content = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>TAC FrameWork</title></head><body><scr'+'ipt src="tac.js" type="text/javascript"></scr'+'ipt><scr'+'ipt type="text/javascript">var tacConfigure = {w: 300,h: 250,ew: 600,eh: 250,c: "http://pagead2.googlesyndication.com/pagead/imgad?id=CICAgKDj1bHVpwEQARgBMgikWfAQUg1kiA",ec: "http://pagead2.googlesyndication.com/pagead/imgad?id=CICAgKDj1bGb0AEQARgBMghiclV-2eAQJA",bc: "http://pagead2.googlesyndication.com/pagead/imgad?id=CICAgKDj1bGXSRABGAEyCJtv_5aq4DPW",clk: "http://timesofindia.indiatimes.com",innovtype: "expand",crtype: "flash",imp: ["",""],showAuto: false,useCookie: true,iTimeout: 12000,iPos: "left-top",overrides:{displayWindowTarget:parent}};TAC.config(tacConfigure);</scr'+'ipt></body></html>';
+		var ifr = document.createElement('iframe');
+		ifr.id="google_ads_iframe_/7176/TOI/TOI_Home/TOI_Home_Home/TOI_HP_ATF_300_0";
+		ifr.name="google_ads_iframe_/7176/TOI/TOI_Home/TOI_Home_Home/TOI_HP_ATF_300_0";
+		ifr.src = "javascript:'<html><body style='background:transparent'></body></html>'";
+		ifr.margin = "0";
+		ifr.marginheight = "0";
+		ifr.marginwidth = "0";
+		ifr.scrolling = "no";
+		ifr.frameborder="0";		
+		document.getElementById("googledfp").appendChild(ifr);
+		ifr.contentWindow.document.open("text/html","replace");
+		ifr.contentWindow.document.write(content);
+		ifr.contentWindow.document.close();		
+	}
+</script>
+
 </head>
 <body>
-<iframe id="google_ads_iframe_/7176/TOI/TOI_Home/TOI_Home_Home/TOI_HP_ATF_300_0" name="google_ads_iframe_/7176/TOI/TOI_Home/TOI_Home_Home/TOI_HP_ATF_300_0" src="index.html"></iframe>
+<div id="googledfp" name="googledfp"><script type="text/javascript">createIframe();</script></div>
+<!--<iframe id="google_ads_iframe_/7176/TOI/TOI_Home/TOI_Home_Home/TOI_HP_ATF_300_0" name="google_ads_iframe_/7176/TOI/TOI_Home/TOI_Home_Home/TOI_HP_ATF_300_0" src="http://local17.com/tac_index.html"></iframe>-->
 </body>
 </html>

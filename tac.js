@@ -177,7 +177,7 @@ _tac.Utils.removeNativeEventHandler = function(c, b, a) {
     }
 };
 _tac.Utils.createClosure = function(d, c) {
-    console.log(arguments);
+    //console.log(arguments);
     var a = [].slice.call(arguments, 2);
     var b = function() {
         var e = arguments.callee;
@@ -278,48 +278,58 @@ _tac.Utils.checkFlashVersion = function() {
     return f;
 };
 _tac.Utils.getConfigOverride = function(b, a) {
-	return (typeof b == "object" && typeof b.overrides == "object" && b.overrides[a] !== undefined) ? b.overrides[a] : null;
+    return (typeof b == "object" && typeof b.overrides == "object" && b.overrides[a] !== undefined) ? b.overrides[a] : null;
 };
 
 /**********************************************************
 TAC IFRAME UTILS STARTS
 **********************************************************/
 _tac.IFrameUtils = function() {};
+_tac.IFrameUtils.INFIFRAME = true;
 _tac.IFrameUtils.isInIframe = function() {
-	return (self != top);
+    return (self != top);
 };
 _tac.IFrameUtils.isInFriendlyIframe = function(b) {
 	var c = false;
 	try {
-		var a = this.determineDisplayWindowTarget(b).window;
+        if (this.isInIframe()) {
+            try {
+                if (parent.document) { c = true; } else { c = false; }    
+            } catch (e) { c = false; }
+            
+        }
+        /*var a = this.determineDisplayWindowTarget(b).window;
+        console.log(a);
 		if (a) {
 			c = true;
-		}
-	} catch (e) {}
+		}*/
+	} catch (e) { console.log('error: ' + e); }    
 	return c;
 };
 _tac.IFrameUtils.determineDisplayWindowTarget = function (c) {
 	var h = _tac.Utils.getConfigOverride(c, "displayWindowTarget");
-	if (h != null) {
-		if (self != top) {
+    if (h != null) {
+		if (self != top) {            
 			h = (h == top) ? top : h.parent;
-		}
+		} 
 		return h;
 	}
 	var d = top;
 	var a = null;
 	var f = parent;
-	while (f != null) {
+	while (f != null) {        
 		try {
 			var b = f.document;
 			if (b) {
 				a = f;
 			}
 		} catch (g) {}
+        console.log(f == top);
 		f = (f == top) ? null : f.parent;
 	}
+    return a;
 };
-_tac.IFrameUtils.topOrSelf = function() {
+_tac.IFrameUtils.topOrSelf = function() {    
     var b = false;
     try {
         var a = parent.top.document;
@@ -338,10 +348,10 @@ TAC COOKIE STARTS
 **********************************************************/
 _tac.CookieUtils = function() {};
 _tac.CookieUtils.getCookies = function(cookieName) {	
-	var S = _tac.IFrameUtils;
-	var W = (S && S.isInIframe() && S.isInFriendlyIframe()) ? S.topOfSelf() : window;
+	var S = _tac.IFrameUtils;        
+	var W = (S && S.isInIframe() && S.isInFriendlyIframe()) ? S.topOrSelf() : window;    
     var d = W.document;
-    var c = d.cookie;
+    var c = d.cookie;    
     var i = 0;
     var index1 = c.indexOf(cookieName);
     if (index1 == -1 || cookieName == "") 
@@ -363,7 +373,7 @@ _tac.CookieUtils.setCookies = function(cookieName, cookieValue, cookieDuration) 
         return true;
     }
 };
-_tac.CookieUtils.checkCookies = function(cookieName, cookieValue, cookieDuration) {	
+_tac.CookieUtils.checkCookies = function(cookieName, cookieValue, cookieDuration) {	    
     if (_tac.CookieUtils.getCookies(cookieName) < 1) {    	
         if (_tac.CookieUtils.setCookies(cookieName, cookieValue, cookieDuration) == true) {
             _tac.AdManager.adServerConfigs.showAuto = 1;
@@ -381,8 +391,9 @@ _tac.CookieUtils.cookieValidate = function(cn) {
     } else {
         this.expCount++;
     }
-    if (_tac.AdManager.adServerConfigs.useCookie == 1) 
+    if (_tac.AdManager.adServerConfigs.useCookie == 1) {        
         _tac.CookieUtils.checkCookies(cn, this.expCount, 1);
+    }
 };
 /**********************************************************
 TAC COOKIE ENDS
@@ -394,6 +405,7 @@ TAC ADMANAGER STARTS
 _tac.AdManager = function() {
 	this.cv = null;
 	this.globalEventBus = new _tac.EventDispatcher();
+    _tac.IFrameUtils.INFIFRAME = _tac.IFrameUtils.isInIframe() && _tac.IFrameUtils.isInFriendlyIframe();
 };
 //showAuto -- Auto open Rich Media
 //expCount -- Cookie count value
@@ -421,8 +433,9 @@ _tac.AdManager.prototype.registerAds = function(b) {
 	var d = b.useCookie;
 	var e = b.showAuto;
 	var cookieName = '_tac_' + b.w + b.h + b.ew + b.eh;
-	this.cv.cookieValidate(cookieName);
-	console.log(_tac.AdManager.adServerConfigs.showAuto);
+    this.cv.cookieValidate(cookieName);
+    //console.log(_tac.IFrameUtils.INFIFRAME);
+
 	//this.registerAd(b);
 	//this.cv.cookieValidate(cookieName);
 	//console.log(cookieName);
@@ -444,7 +457,7 @@ _tac.Core.pubServerConfigs = {};
 _tac.Core.prototype.config = function(c) {
 	try {
 		this.pubServerConfigs = c;
-		_tac.AdManager.adServerConfigs = this.pubServerConfigs;
+		_tac.AdManager.adServerConfigs = this.pubServerConfigs;        
 		var adMgr = new _tac.AdManager();
 		if (typeof _tac.AdManager.adServerConfigs != null) {
 			adMgr.registerAds(_tac.AdManager.adServerConfigs);
